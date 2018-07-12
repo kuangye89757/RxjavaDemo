@@ -33,6 +33,7 @@ public class Student {
     public String toString() {
         return "Student{" +
                 "name='" + name + '\'' +
+                ", courses=" + courses +
                 '}';
     }
 
@@ -49,6 +50,13 @@ public class Student {
 
         public void setCourseName(String courseName) {
             this.courseName = courseName;
+        }
+
+        @Override
+        public String toString() {
+            return "Course{" +
+                    "courseName='" + courseName + '\'' +
+                    '}';
         }
     }
 }

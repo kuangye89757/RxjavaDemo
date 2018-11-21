@@ -6,6 +6,9 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import com.kuangye.rxjavademo.Student.Course;
+import com.kuangye.rxjavademo.operator.ActionOperator;
+import com.kuangye.rxjavademo.operator.CreateOperator;
+import com.kuangye.rxjavademo.operator.TransformOperator;
 
 import java.util.ArrayList;
 
@@ -23,12 +26,10 @@ import java.util.ArrayList;
  * RxJava就是为了剔除这样的嵌套结构，使得整体的逻辑性更强 (不要出现for循环)
  */
 public class MainActivity extends AppCompatActivity {
-
    
     private ListView listView;
     private ArrayList<Student> mData;
     private ArrayAdapter<Student> adapter;
-    private Operator mOperator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,10 +53,18 @@ public class MainActivity extends AppCompatActivity {
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_expandable_list_item_1);
         listView.setAdapter(adapter);
 
-        mOperator = new Operator();
-        mOperator.generateOperator();
-//        mOperator.actionOperator();
-//        mOperator.transformOperator(mData);
+//        mOperator = new Operator();
+        CreateOperator createOperator = CreateOperator.getInstance();
+        createOperator.generateOperator();
+
+        ActionOperator actionOperator = ActionOperator.getInstance();
+        actionOperator.actionOperator();
+
+        SchedulerAPI.INSTANCE.scheduler();
+
+        TransformOperator transformOperator = TransformOperator.getInstance();
+        transformOperator.transformOperator(mData);
+        
 //        mOperator.filterOperator(mData);
 //        mOperator.combinationOperator();
 //        mOperator.assistOperator();

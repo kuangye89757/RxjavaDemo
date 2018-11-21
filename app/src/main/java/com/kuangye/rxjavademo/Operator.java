@@ -3,24 +3,17 @@ package com.kuangye.rxjavademo;
 import android.os.SystemClock;
 import android.util.Log;
 
-import com.kuangye.rxjavademo.Student.Course;
-
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import rx.Observable;
 import rx.Observer;
 import rx.Subscriber;
-import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.functions.Func2;
-import rx.observables.GroupedObservable;
 import rx.schedulers.Schedulers;
 
 
@@ -35,39 +28,12 @@ import rx.schedulers.Schedulers;
 public class Operator {
     private static final String TAG = "Operator";
 
-    /**
-     * 创建操作符: 用于创建不同形式的Observable
-     */
-    public void generateOperator() {
-//        createOperator();
-//        justOperator();
-//        fromOperator();
-//        intervalOperator();
-//        rangeOperator();
-        fromCallOperator();
-    }
+    
 
 
-    /**
-     * Action系列
-     */
-    public void actionOperator() {
-        actionMethod();
-    }
+    
 
 
-    /**变换操作符: 对Observable发射的数据按一定规则变换*/
-    /**
-     * Func系列
-     */
-    public void transformOperator(ArrayList<Student> data) {
-        mapOperator(data);
-        flatMapOperator(data);
-        flatMapIterableOperator();
-        bufferOperator();
-        groupByOperator();
-
-    }
 
     /**
      * 过滤操作符: 过滤和选择Observable发射满足条件的数据
@@ -476,7 +442,7 @@ public class Operator {
      * elementAtOrDefault操作符
      * 索引值大于数据项数，会发射一个默认值而不是异常 但若是负数索引
      * 会抛出一个IndexOutOfBoundsException异常
-     * https://blog.csdn.net/nicolelili1/article/details/52116931
+     * https://blog.csdn.net/nicolelili1/article/details/52116931   
      */
     private void elementAtOperator(ArrayList<Student> data) {
         Observable.from(data)
@@ -609,361 +575,16 @@ public class Operator {
     }
 
 
-    /**
-     * 指定一个Func对象,将Observable转换成一个新的Observable并发射,观察者将接收到新的Observable的处理
-     */
-    private void mapOperator(ArrayList<Student> data) {
-        Observable.from(data)
-                .map(new Func1<Student, List<Course>>() {
-                    @Override
-                    public List<Course> call(Student student) {
-                        Log.d(TAG, "call为:" + student.getName());
-                        return student.getCourses();
-                    }
-                }).subscribe(new Action1<List<Course>>() {
-            @Override
-            public void call(List<Course> courseList) {
-                for (Course course : courseList) {
-                    Log.d(TAG, "map为:" + course.getCourseName());
-                }
-            }
-        });
-
-    }
-
-    /**
-     * 1. 使用传入的事件对象创建一个 Observable 对象；
-     * 2. 并不发送这个 Observable, 而是将它激活，于是它开始发送事件；
-     * 3. 每一个创建出来的 Observable 发送的事件，都被汇入同一个 Observable ，
-     * 而这个 Observable 负责将这些事件统一交给 Subscriber 的回调方法
-     * <p>
-     * 和 map() 相同的是， 都依赖FuncX(入参，返回值)进行转换 后直接被subscribe
-     * 和 map() 不同的是，
-     * 1. map返回的是结果集，(map返回结果集不能直接使用from/just再次进行事件分发)
-     * flatmap返回的是包含结果集的Observable
-     * <p>
-     * 2. map被订阅时每传递一个事件执行一次onNext方法，只能单一转换，单一只的是只能一对一进行转换
-     * flatmap多用于多对多，一对多，再被转化为多个时，一般利用from/just进行一一分发，
-     * 被订阅时将所有数据传递完毕汇总到一个Observable后  再一一执行onNext方法（执行顺序不同）
-     * <p>
-     * 如单纯用于一对一转换则和map相同
-     * <p>
-     * <p>
-     * flatMap的合并允许交叉 最终结果可能顺序不是发射顺序  可使用concatMap
-     */
-    private void flatMapOperator(ArrayList<Student> data) {
-        Observable.from(data)
-                .flatMap(new Func1<Student, Observable<Course>>() {
-                    @Override
-                    public Observable<Course> call(Student student) {
-                        Log.d(TAG, "call为:" + student.getName());
-                        return Observable.from(student.getCourses());
-                    }
-                }).subscribe(new Action1<Course>() {
-            @Override
-            public void call(Course course) {
-                Log.d(TAG, "flatMap为:" + course.getCourseName());
-            }
-        });
-    }
-
-    /**
-     * flatMapIterable可以将数据包装成Iterable发射
-     */
-    private void flatMapIterableOperator() {
-        Observable.just(1, 2, 3)
-                .flatMapIterable(new Func1<Integer, Iterable<Student>>() {
-                    @Override
-                    public Iterable<Student> call(Integer integer) {
-                        List<Student> mList = new ArrayList<>();
-
-                        Student student = new Student("男学生" + integer);
-                        ArrayList<Course> courses = new ArrayList<>();
-                        courses.add(new Course("课程1"));
-                        courses.add(new Course("课程2"));
-                        student.setCourses(courses);
-
-                        Student student1 = new Student("女学生" + integer);
-                        ArrayList<Course> courses1 = new ArrayList<>();
-                        courses1.add(new Course("课程3"));
-                        courses1.add(new Course("课程4"));
-                        student1.setCourses(courses1);
-
-                        mList.add(student);
-                        mList.add(student1);
-                        return mList;
-                    }
-                }).subscribe(new Action1<Student>() {
-            @Override
-            public void call(Student stu) {
-                Log.d(TAG, "flatMapIterable为:" + stu.toString());
-            }
-        });
-    }
-
-    /**
-     * buffer将新转换的Observable以缓存数按批次发射
-     * 能一次性集齐多个结果到列表中，订阅后自动清空相应结果,直到完全清除
-     * https://blog.csdn.net/axuanqq/article/details/50698532
-     */
-    private void bufferOperator() {
-        Observable.just(1, 2, 3, 4, 5, 6, 7, 8)
-                .buffer(3)
-                .subscribe(new Observer<List<Integer>>() {
-                    @Override
-                    public void onCompleted() {
-                        Log.d(TAG, "completeAction");
-                        Log.d(TAG, "========================");
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        Log.d(TAG, "onError");
-                    }
-
-                    @Override
-                    public void onNext(List<Integer> integers) {
-                        Log.d(TAG, "onNext " + integers);
-                    }
-                });
-    }
-
-    /**
-     * groupBy操作符可以对key进行分组(这里key是swordsman.getLevel())
-     * concat操作符是接收若干个Observables，发射数据是有序的，不会交叉
-     */
-    private void groupByOperator() {
-        Swordsman s1 = new Swordsman("韦一笑", "A");
-        Swordsman s2 = new Swordsman("张三丰", "SS");
-        Swordsman s3 = new Swordsman("周芷若", "S");
-        Swordsman s4 = new Swordsman("宋远桥", "S");
-        Swordsman s5 = new Swordsman("殷梨亭", "A");
-        Swordsman s6 = new Swordsman("张无忌", "SS");
-        Swordsman s7 = new Swordsman("鹤笔翁", "S");
-        Swordsman s8 = new Swordsman("宋青书", "A");
-
-        Observable<GroupedObservable<String, Swordsman>> groupedObservableObservable =
-                Observable.just(s1, s2, s3, s4, s5, s6, s7, s8)
-                        .groupBy(new Func1<Swordsman, String>() {
-                            @Override
-                            public String call(Swordsman swordsman) {
-                                return swordsman.getLevel();
-                            }
-                        });
-        Observable.concat(groupedObservableObservable).subscribe(new Action1<Swordsman>() {
-            @Override
-            public void call(Swordsman swordsman) {
-                Log.d(TAG, "groupBy:" + swordsman.getName() + "===" + swordsman.getLevel());
-            }
-        });
-    }
+    
 
 
-    /**
-     * 后面的数字代表回调参数类型的个数
-     */
-    private void actionMethod() {
-        Action1 nextAction = new Action1<String>() {
-
-            @Override
-            public void call(String s) {
-                Log.d(TAG, "nextAction:" + s);
-            }
-        };
+    
 
 
-        Action1 errorAction = new Action1<Throwable>() {
-            @Override
-            public void call(Throwable throwable) {
-                Log.d(TAG, "errorAction:" + throwable.getMessage());
-            }
-        };
+    
 
+   
 
-        Action0 completeAction = new Action0() {
-            @Override
-            public void call() {
-                Log.d(TAG, "completeAction");
-                Log.d(TAG, "========================");
-            }
-        };
-
-        Observable observable = Observable.create(new Observable.OnSubscribe<String>() {
-            @Override
-            public void call(Subscriber<? super String> subscriber) {
-                //这里只会回调completeAction 
-//                subscriber.onCompleted();
-//                subscriber.onError(new IllegalAccessException());
-//                subscriber.onNext("action1");
-
-
-                //这里不会回调errorAction
-//                subscriber.onNext("action1");
-//                subscriber.onCompleted();
-//                subscriber.onError(new IllegalAccessException());
-
-                //这里不会回调completeAction
-                subscriber.onNext("action1");
-                subscriber.onError(new IllegalAccessException());
-                subscriber.onCompleted();
-            }
-        });
-        observable.subscribe(nextAction, errorAction, completeAction);
-    }
-
-
-    /**
-     * 使用create创建一个Observable
-     */
-    private void createOperator() {
-        Subscriber<String> subscriber = new Subscriber<String>() {
-            @Override
-            public void onCompleted() {
-                Log.d(TAG, "onCompleted");
-                Log.d(TAG, "========================");
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                Log.d(TAG, "onError");
-            }
-
-            @Override
-            public void onNext(String s) {
-                Log.d(TAG, "onNext : " + s);
-            }
-        };
-
-        Observable.create(new Observable.OnSubscribe<String>() {
-            @Override
-            public void call(Subscriber<? super String> subscriber) {
-                subscriber.onNext("第一个");
-                subscriber.onNext("第二个");
-                subscriber.onCompleted();
-            }
-        }).subscribe(subscriber);
-
-    }
-
-    /**
-     * 使用just创建一个Observable [提供1~10之间个同泛型参数]
-     */
-    private void justOperator() {
-        Subscriber<Boolean> subscriber = new Subscriber<Boolean>() {
-            @Override
-            public void onCompleted() {
-                Log.d(TAG, "onCompleted");
-                Log.d(TAG, "========================");
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                Log.d(TAG, "onError");
-            }
-
-            @Override
-            public void onNext(Boolean s) {
-                Log.d(TAG, "onNext : " + s);
-            }
-        };
-
-        Observable.just(true, false).subscribe(subscriber);
-    }
-
-
-    /**
-     * 使用from创建一个Observable [可以存放集合或数组]
-     */
-    private void fromOperator() {
-        Subscriber<Student> subscriber = new Subscriber<Student>() {
-            @Override
-            public void onCompleted() {
-                Log.d(TAG, "onCompleted");
-                Log.d(TAG, "========================");
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                Log.d(TAG, "onError");
-            }
-
-            @Override
-            public void onNext(Student s) {
-                Log.d(TAG, "onNext : " + s.getName());
-            }
-        };
-
-        ArrayList<Student> students = new ArrayList<>(3);
-        for (int i = 0; i < 3; i++) {
-            students.add(new Student("学生" + i));
-        }
-
-        Observable.from(students).subscribe(subscriber);
-    }
-
-    /**
-     * 使用interval创建一个按固定时间间隔发射Long序列的Observable [每隔3秒发射]
-     */
-    private void intervalOperator() {
-        Observable.interval(3, TimeUnit.SECONDS)
-                .subscribe(new Action1<Long>() {
-                    @Override
-                    public void call(Long aLong) {
-                        Log.d(TAG, "interval:" + aLong.intValue());
-                    }
-                });
-    }
-
-    /**
-     * 使用range创建一个发射指定范围的int序列的Observable [从3开始一共10次的发射]
-     * 可代替循环
-     * <p>
-     * 使用repeat来设置执行次数
-     */
-    private void rangeOperator() {
-        Observable.range(3, 10)
-                .repeat(2)
-                .subscribe(new Action1<Integer>() {
-                    @Override
-                    public void call(Integer integer) {
-                        Log.d(TAG, "range:" + integer);
-                    }
-                });
-    }
-
-    /**
-     * 异步加载
-     * 获取要发送的数据的代码只会在有Observer订阅之后执行。
-     * 获取数据的代码可以在子线程中执行。
-     * 
-     * 返回值使用Subscription接收 待生命周期结束时 使用unsubscribe销毁
-     */
-    private void fromCallOperator() {
-        Subscription mTvShowSubscription = Observable.fromCallable(new Callable<Integer>() {
-            @Override
-            public Integer call() {
-                Log.d(TAG, "Observable: " + Thread.currentThread().getName());
-                Log.d(TAG, "发射" + 1);
-                return 1;
-            }
-        }).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<Integer>() {
-                    @Override
-                    public void onCompleted() {
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                    }
-
-                    @Override
-                    public void onNext(Integer integer) {
-                        Log.d(TAG, "observer: " + Thread.currentThread().getName());
-                        Log.d(TAG, "收到" + integer);
-                    }
-                });
-
-    }
+   
 
 }

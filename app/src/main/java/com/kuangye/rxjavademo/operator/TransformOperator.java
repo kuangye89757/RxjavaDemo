@@ -11,6 +11,7 @@ import java.util.List;
 
 import rx.Observable;
 import rx.Observer;
+import rx.Subscriber;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.observables.GroupedObservable;
@@ -19,11 +20,31 @@ import rx.observables.GroupedObservable;
  * 变换，将事件序列中的对象或整个序列进行加工，转换成不同的事件或事件序列
  *          对Observable发射的数据按一定规则变换
  *          
+ *          
  * Func1 和 Action 的区别:
  *      FuncX   包装的是有返回值的方法 (参数列表1,..参数列表9,返回值类型)
  *      ActionX 包装的是无返回值的方法
  * 
- * 
+ * 原理:针对事件序列的处理和再发送
+ *      public <R> Observable<R> lift(Operator<? extends R, ? super T> operator) {
+ *          return Observable.create(new OnSubscribe<R>() {
+ *              @Override
+ *              public void call(Subscriber subscriber) {
+ *                  Subscriber newSubscriber = operator.call(subscriber);
+ *                  newSubscriber.onStart();
+ *                  onSubscribe.call(newSubscriber);
+ *              }
+ *          });
+ *       }
+ *      
+ *      //结合subscribe()一起看
+ *      public Subscription subscribe(Subscriber subscriber) {
+ *            subscriber.onStart();
+ *            onSubscribe.call(subscriber);
+ *            return subscriber;
+ *      }
+ *      
+ *      建议尽量使用已有的 lift() 包装方法（如 map() flatMap() 等）进行组合来实现需求
  * 
  * @author shijie9
  */
@@ -44,12 +65,18 @@ public class TransformOperator {
 
     /**变换操作符: 对Observable发射的数据按一定规则变换*/
     public void transformOperator(ArrayList<Student> data) {
+        Log.d(TAG,"=================mapOperator=================");
         mapOperator(data);
+        Log.d(TAG,"=================flatMapOperator=================");
         flatMapOperator(data);
+        Log.d(TAG,"=================flatMapIterableOperator=================");
         flatMapIterableOperator();
+        Log.d(TAG,"=================bufferOperator=================");
         bufferOperator();
+        Log.d(TAG,"=================groupByOperator=================");
         groupByOperator();
-
+        Log.d(TAG,"=================singleOperator=================");
+        singleOperator();
     }
 
 
@@ -148,6 +175,7 @@ public class TransformOperator {
 
     /**
      * buffer将新转换的Observable以缓存数按批次发射
+     * 
      * 能一次性集齐多个结果到列表中，订阅后自动清空相应结果,直到完全清除
      * https://blog.csdn.net/axuanqq/article/details/50698532
      */
@@ -202,4 +230,28 @@ public class TransformOperator {
             }
         });
     }
+
+    /**
+     * single操作符 只发射一个值会正常执行
+     */
+    private void singleOperator() {
+        Integer[] items = {6};
+        Observable.from(items).single().subscribe(new Subscriber<Integer>() {
+            @Override
+            public void onNext(Integer integer) {
+                System.out.println("onNext................." + integer);
+            }
+
+            @Override
+            public void onCompleted() {
+                System.out.println("onCompleted.................");
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                System.out.println("onError....................");
+            }
+        });
+    }
+
 }

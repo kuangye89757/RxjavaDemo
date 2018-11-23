@@ -6,24 +6,19 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import com.kuangye.rxjavademo.Student.Course;
-import com.kuangye.rxjavademo.operator.ActionOperator;
-import com.kuangye.rxjavademo.operator.CreateOperator;
-import com.kuangye.rxjavademo.operator.TransformOperator;
+import com.kuangye.rxjavademo.operator.AssistOperator;
+import com.kuangye.rxjavademo.operator.CombinationOperator;
+import com.kuangye.rxjavademo.operator.ConversionOperator;
+import com.kuangye.rxjavademo.operator.DoOperator;
+import com.kuangye.rxjavademo.operator.FilterOperator;
 
 import java.util.ArrayList;
 
 /**
- * 响应式编程中一切皆流
- * 想象成流水线
- * <p>
- * RxJava 的观察者模式
- * Observable (可观察者，即被观察者)
- * Observer (观察者)
- * subscribe (订阅)、事件
- * Observable 和 Observer 通过 subscribe() 方法实现订阅关系
- * 从而 Observable 可以在需要的时候发出事件来通知 Observer。
- * <p>
- * RxJava就是为了剔除这样的嵌套结构，使得整体的逻辑性更强 (不要出现for循环)
+ * 响应式编程中一切皆流 (想象成流水线)
+ *      RxJava就是为了剔除这样的嵌套结构，使得整体的逻辑性更强 (不要出现for循环)
+ *
+ * @author shijie9
  */
 public class MainActivity extends AppCompatActivity {
    
@@ -53,28 +48,31 @@ public class MainActivity extends AppCompatActivity {
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_expandable_list_item_1);
         listView.setAdapter(adapter);
 
-//        mOperator = new Operator();
-        CreateOperator createOperator = CreateOperator.getInstance();
-        createOperator.generateOperator();
+//        CreateOperator createOperator = CreateOperator.getInstance();
+//        createOperator.generateOperator();
+//
+//        ActionOperator actionOperator = ActionOperator.getInstance();
+//        actionOperator.actionOperator();
+//
+//        SchedulerAPI.INSTANCE.scheduler();
+//
+//        TransformOperator transformOperator = TransformOperator.getInstance();
+//        transformOperator.transformOperator(mData);
 
-        ActionOperator actionOperator = ActionOperator.getInstance();
-        actionOperator.actionOperator();
+        FilterOperator filterOperator = FilterOperator.getInstance();
+        filterOperator.filterOperator(mData);
 
-        SchedulerAPI.INSTANCE.scheduler();
+        CombinationOperator combinationOperator = CombinationOperator.getInstance();
+        combinationOperator.combinationOperator();
 
-        TransformOperator transformOperator = TransformOperator.getInstance();
-        transformOperator.transformOperator(mData);
-        
-//        mOperator.filterOperator(mData);
-//        mOperator.combinationOperator();
-//        mOperator.assistOperator();
-//        mOperator.doOperator();
-//        mOperator.threadOperator();
-//        mOperator.errorOperator();
-//        mOperator.booleOperator();
-//        mOperator.conditionsOperator();
-//        mOperator.conversionOperator();
+        DoOperator doOperator = DoOperator.getInstance();
+        doOperator.doOperator();
 
+        ConversionOperator conversionOperator = ConversionOperator.getInstance();
+        conversionOperator.conversionOperator();
+
+        AssistOperator assistOperator = AssistOperator.getInstance();
+        assistOperator.assistOperator();
     }
 
 }
